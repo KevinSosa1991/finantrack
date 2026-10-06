@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinanTrack</title>
+  <meta name="description" content="Control personal de ingresos y gastos">
+  <link rel="icon" type="image/png" href="img/logo.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="index.html" aria-label="FinanTrack, inicio">
+        <img class="brand__logo" src="img/logo.png" alt="" width="40" height="40">
+        <span class="brand__name">Finan<span>Track</span></span>
+      </a>
+      <p class="topbar__tag">Tus ingresos y gastos, en un solo lugar</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- DASHBOARD -->
+    <section class="cards" aria-label="Resumen general">
+      <article class="card card--balance">
+        <h2 class="card__label">Saldo disponible</h2>
+        <p class="card__value" id="card-balance">$0.00</p>
+      </article>
+      <article class="card">
+        <h2 class="card__label">Total de ingresos</h2>
+        <p class="card__value card__value--income" id="card-income">$0.00</p>
+      </article>
+      <article class="card">
+        <h2 class="card__label">Total de gastos</h2>
+        <p class="card__value card__value--expense" id="card-expense">$0.00</p>
+      </article>
+      <article class="card">
+        <h2 class="card__label">Movimientos</h2>
+        <p class="card__value" id="card-count">0</p>
+      </article>
+    </section>
+
+    <div class="layout">
+
+      <!-- FORMULARIO -->
+      <section class="panel" aria-labelledby="form-title">
+        <h2 class="panel__title" id="form-title">Nuevo movimiento</h2>
+        <form id="movement-form" novalidate>
+
+          <fieldset class="type-switch">
+            <legend class="sr-only">Tipo de movimiento</legend>
+            <label class="type-switch__option">
+              <input type="radio" name="type" value="gasto" checked>
+              <span>Gasto</span>
+            </label>
+            <label class="type-switch__option">
+              <input type="radio" name="type" value="ingreso">
+              <span>Ingreso</span>
+            </label>
+          </fieldset>
+
+          <div class="field">
+            <label for="concept">Concepto</label>
+            <input type="text" id="concept" name="concept" maxlength="60" placeholder="Ej. Supermercado">
+            <p class="field__error" id="concept-error"></p>
+          </div>
+
+          <div class="field">
+            <label for="category">Categoría</label>
+            <select id="category" name="category"></select>
+            <p class="field__error" id="category-error"></p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="amount">Monto</label>
+              <input type="number" id="amount" name="amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+              <p class="field__error" id="amount-error"></p>
+            </div>
+            <div class="field">
+              <label for="date">Fecha</label>
+              <input type="date" id="date" name="date">
+              <p class="field__error" id="date-error"></p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="description">Descripción <span class="optional">(opcional)</span></label>
+            <textarea id="description" name="description" rows="2" maxlength="200" placeholder="Notas adicionales"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--primary">Registrar movimiento</button>
+        </form>
+      </section>
+
+      <!-- RESUMEN -->
+      <section class="panel" aria-labelledby="summary-title">
+        <h2 class="panel__title" id="summary-title">Resumen financiero</h2>
+
+        <div class="period">
+          <h3 class="period__title">Período actual: <span id="period-name"></span></h3>
+          <dl class="period__list">
+            <div><dt>Ingresos</dt><dd id="period-income" class="amount--income">$0.00</dd></div>
+            <div><dt>Gastos</dt><dd id="period-expense" class="amount--expense">$0.00</dd></div>
+            <div><dt>Saldo</dt><dd id="period-balance">$0.00</dd></div>
+          </dl>
+        </div>
+
+        <h3 class="period__title">Gastos por categoría</h3>
+        <div id="category-chart" class="chart"></div>
+      </section>
+
+    </div>
+
+    <!-- LISTA -->
+    <section class="panel" aria-labelledby="list-title">
+      <div class="list-head">
+        <h2 class="panel__title" id="list-title">Movimientos</h2>
+
+        <div class="list-controls">
+          <div class="filters" role="group" aria-label="Filtrar por tipo">
+            <button type="button" class="filter is-active" data-filter="todos">Todos</button>
+            <button type="button" class="filter" data-filter="ingreso">Ingresos</button>
+            <button type="button" class="filter" data-filter="gasto">Gastos</button>
+          </div>
+          <label class="sort">
+            <span class="sr-only">Ordenar por fecha</span>
+            <select id="sort-order">
+              <option value="desc">Más recientes primero</option>
+              <option value="asc">Más antiguos primero</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <p id="empty-message" class="empty" hidden>Todavía no hay movimientos. Registra el primero con el formulario.</p>
+
+      <div class="table-scroll">
+        <table class="table" id="movements-table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Concepto</th>
+              <th>Categoría</th>
+              <th>Fecha</th>
+              <th class="num">Monto</th>
+              <th><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="movements-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">FinanTrack · Los datos se guardan solo en este navegador.</div>
+  </footer>
+
+  <!-- CONFIRMACIÓN DE ELIMINACIÓN -->
+  <div id="confirm-overlay" class="overlay" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">¿Eliminar este movimiento?</h2>
+      <p id="confirm-text"></p>
+      <div class="dialog__actions">
+        <button type="button" class="btn" id="confirm-cancel">Cancelar</button>
+        <button type="button" class="btn btn--danger" id="confirm-accept">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
